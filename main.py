@@ -10,115 +10,44 @@ import matplotlib.pyplot as plt
 import entropy as ent
 import wfdb
 import antropy as ant
+from mne.io import read_raw_edf
 
-# path = "E:\\data\\post-ictal-heart-rate-oscillations-in-partial-epilepsy-1.0.0\\sz01"
-path = "C:\\Users\\Ftay\\Desktop\\PhD\\tests\\siena_vs_fantasia\\Peaks_RR\\PN05\\"
-ID = "05-4"
+def read_wfdb(path):
+    #, sampfrom = start, sampto = end
+    record = wfdb.rdsamp(path)
+    annotation = wfdb.rdann(path, 'ecg')
+    # annotation = wfdb.rdann(path, 'dat')
 
-# == load the epileptic patient
-with open(path + "peaks-PN" + ID + ".txt", 'r') as file1:
-    peaks = [float(i) for line in file1 for i in line.split('\n') if i.strip()]
+    # Read an annotation as an Annotation object
+    sig = record[0]
+    rr = record[1]
 
-# with open(path + "SDNN-PN" + ID + "-10.txt", 'r') as file1:
-#     SDNN = [float(i) for line in file1 for i in line.split('\n') if i.strip()]
-#
-# with open(path + "NN50-PN" + ID + "-10.txt", 'r') as file1:
-#     NN50 = [float(i) for line in file1 for i in line.split('\n') if i.strip()]
+    fs = rr['fs']
+    print('fs equals to: ', fs)
 
-# with open(path + "RMSSD-PN" + ID + "-10.txt", 'r') as file1:
-#     RMSSD = [float(i) for line in file1 for i in line.split('\n') if i.strip()]
-#
-# with open(path + "spectral-PN" + ID + "-10.txt", 'r') as file1:
-#     spectral = [float(i) for line in file1 for i in line.split('\n') if i.strip()]
+    i = 0
+    # l_n = end - start
+    start = 0
+    end = rr['sig_len']
+    l_n = rr['sig_len']
+    signal = []
 
-# load healthy subjects
-#path = "/home/manef/tests/siena_vs_fantasia/fantasia_features/"
+    while i < l_n:
+        an = sig[i]
+        #signal.append(an[1])
+        signal.append(an)
+        i = i + 1
 
-# path = "C:\\Users\\Ftay\\Desktop\\PhD\\tests\data\\fantasia-database-1.0.0(1)\\young_to_try_in_test\\f2y08"
-#
-# ID = "f1y01"
+    annotation.sample = annotation.sample - start
+    anno = ["|", "N", "L", "R", "B", "A", "a", "J", "S", "V", "r", "F", "e", "j", "n", "E", "/", "f", "Q", "?"]
+    peak = []
 
-# peaks = []
-# with open(path + "peaks-" + ID + ".txt", 'r') as file1:
-#     peaks = [float(i) for line in file1 for i in line.split('\n') if i.strip()]
+    for i in range(len(annotation.symbol)):
 
-# def read_wfdb(path):
-#     #, sampfrom = start, sampto = end
-#     record = wfdb.rdsamp(path)
-#     #annotation = wfdb.rdann(path, 'ecg')
-#     annotation = wfdb.rdann(path, 'dat')
-#
-#     # Read an annotation as an Annotation object
-#     sig = record[0]
-#     rr = record[1]
-#
-#     fs = rr['fs']
-#     print('fs equals to: ', fs)
-#
-#     i = 0
-#     # l_n = end - start
-#     start = 0
-#     end = rr['sig_len']
-#     l_n = rr['sig_len']
-#     signal = []
-#
-#     while i < l_n:
-#         an = sig[i]
-#         #signal.append(an[1])
-#         signal.append(an)
-#         i = i + 1
-#
-#     annotation.sample = annotation.sample - start
-#     anno = ["|", "N", "L", "R", "B", "A", "a", "J", "S", "V", "r", "F", "e", "j", "n", "E", "/", "f", "Q", "?"]
-#     peak = []
-#
-#     for i in range(len(annotation.symbol)):
-#
-#         if (annotation.symbol[i] in anno):
-#             peak.append(annotation.sample[i])
-#
-#     return signal, peak, fs
+        if (annotation.symbol[i] in anno):
+            peak.append(annotation.sample[i])
 
-# signal_input, peaks, fs = read_wfdb(path)
-#
-# pl = [0.5] * len(peaks)
-# fig, axs = plt.subplots()
-# axs.plot(signal_input, label="annotatinos")
-# axs.plot(peaks, pl,"ro")
-# axs.grid(True)
-# #axs.legend()
-# plt.show()
-# print('done')
-
-# with open(path + "App-" + ID + "-10.txt", 'r') as file1:
-#     app = [float(i) for line in file1 for i in line.split('\n') if i.strip()]
-
-# with open(path + "Sample-" + ID + "-10.txt", 'r') as file1:
-#     sample = [float(i) for line in file1 for i in line.split('\n') if i.strip()]
-
-# with open(path + "NN50-" + ID + "-10.txt", 'r') as file1:
-#     NN50 = [float(i) for line in file1 for i in line.split('\n') if i.strip()]
-
-# with open(path + "RMSSD-" + ID + "-10.txt", 'r') as file1:
-#     RMSSD = [float(i) for line in file1 for i in line.split('\n') if i.strip()]
-#
-# with open(path + "spectral-" + ID + "-10.txt", 'r') as file1:
-#     spectral = [float(i) for line in file1 for i in line.split('\n') if i.strip()]
-#
-# with open(path + "SDNN-" + ID + "-10.txt", 'r') as file1:
-#     SDNN = [float(i) for line in file1 for i in line.split('\n') if i.strip()]
-
-# == healthy subjects
-NN50_ep, pNN50_ep, SDNN_ep, SDNN_test, nn50_test_sei, fft_ep, welch_ep, RMSSD_ep = ([] for i in range(8))
-
-# == healthy subjects
-
-NN50, app = ([] for i in range(2))
-
-pre_ictal = []
-STD = []
-STD_healthy = []
-fs = 200
+    return signal, peak, fs
 
 def features(peaks, fs):
 
@@ -157,8 +86,6 @@ def features(peaks, fs):
 
     return approximate, NN50
 
-app, NN50 = features(peaks,fs)
-
 def std_compute(xx):
     i = 0
     j = 6
@@ -178,8 +105,108 @@ def std_compute(xx):
             break
     return STD
 
+def threshold(array):
+
+    sorted = np.sort(array)
+    # == computing Q1 and Q3
+    print("length of sorted", len(sorted))
+    Q1 = (len(sorted) + 1) / 4
+    Q3 = ((3 * len(sorted)) + 1) / 4
+
+    if (Q1 % 2 != 0):
+        new = (sorted[int(Q1)] + sorted[int(Q1) + 1]) / 2
+        lower = new
+    else:
+        lower = sorted[Q1]
+
+    if (Q3 % 2 != 0):
+        new = (sorted[int(Q3)] + sorted[int(Q3) + 1]) / 2
+        upper = new
+    else:
+        upper = sorted[Q3]
+
+    print("Q1 equals to \t", Q1)
+    print("lower value equals to \t", lower)
+
+    print("Q3 equals to \t", Q3)
+    print("upper value equals to \t", upper)
+
+    IQR = upper - lower
+    print("IQR equals to \t", IQR)
+    thresh = upper + (1.5 * IQR)
+    print("the new threshold is", thresh)
+
+    return thresh
+
+def find_nearest(array, value):
+    array = np.asarray(array)
+    idx = (np.abs(array - value)).argmin()
+    return array[idx]
+# =============================================================================================================
+# == loading epileptic patients acquisitions
+
+# path = "E:\\data\\post-ictal-heart-rate-oscillations-in-partial-epilepsy-1.0.0\\sz01"
+path = "C:\\Users\\Ftay\\Desktop\\PhD\\tests\\siena_vs_fantasia\\Peaks_RR\\PN09\\"
+ID = "09-2"
+fs = 512
+# == load the epileptic patient
+with open(path + "peaks-PN" + ID + ".txt", 'r') as file1:
+    peaks = [float(i) for line in file1 for i in line.split('\n') if i.strip()]
+
+
+
+print("plotting done")
+# =============================================================================================================
+
+# load healthy subjects
+# path = "/home/manef/tests/siena_vs_fantasia/fantasia_features/"
+#
+# path = "C:\\Users\\Ftay\\Desktop\\PhD\\tests\\data\\fantasia-database-1.0.0(1)\\young_to_try_in_test\\f1y04"
+#
+# ID = "f1y01"
+#
+# peaks = []
+# signal_input, peaks, fs = read_wfdb(path)
+
+# =============================================================================================================
+
+# == healthy subjects
+NN50_ep, pNN50_ep, SDNN_ep, SDNN_test, nn50_test_sei, fft_ep, welch_ep, RMSSD_ep = ([] for i in range(8))
+
+# == healthy subjects
+
+NN50, app = ([] for i in range(2))
+
+pre_ictal = []
+STD = []
+STD_healthy = []
+
+app, NN50 = features(peaks,fs)
+
+# =============================================================================================================
+# == threshold computing
+#  working on ApEn
+
 STD_app = std_compute(app)
 STD_NN50 = std_compute(NN50)
+
+SD_app = STD_app[0:len(STD_app) - 10]
+
+thresh_AP = threshold(SD_app)
+
+# =============================================================================================================
+# == working on NN50
+SD_NN50 = STD_NN50[0:len(STD_NN50) - 10]
+
+thresh_nn = threshold(SD_NN50)
+
+# ==============================
+# == normality test
+
+print('ApEn threshold equals to:\t', thresh_AP)
+print('NN50 threshold equals to:\t', thresh_nn)
+# =============================================================================================================
+# == finding the intersections of the threshold value computed
 
 first = 0
 tt = [first]
@@ -213,7 +240,7 @@ arr=[]
 arr1=[]
 
 for i in range (len(STD_app)):
-    arr.append(0.07)
+    arr.append(thresh_AP)
     arr1.append(0)
 
 first_line = LineString(np.column_stack((tt_healthy,STD_app)))
@@ -223,21 +250,11 @@ intersection = first_line.intersection(second_line)
 x, y = LineString(intersection).xy
 print(" x \t", x)
 
-# result = np.where(STD_app == STD_app[len(STD_app) - 10])
-#
-# go = bisect.bisect_right(x, result[0])
-#
-# index_threshold = x[go - 1]
-#
-# print('index threshold\t', index_threshold )
-
-# ____ working on the NN50 thresholding
-
 arr_n=[]
 arr1_n=[]
 
 for i in range (len(STD_NN50)):
-    arr_n.append(5)
+    arr_n.append(thresh_nn)
     arr1_n.append(0)
 
 first_line_n = LineString(np.column_stack((tt_healthy, STD_NN50)))
@@ -246,39 +263,27 @@ intersection_n = first_line_n.intersection(second_line_n)
 x_n, y_n = LineString(intersection_n).xy
 print((x_n))
 
-# result = np.where(STD_NN50 == STD_NN50[len(STD_NN50) - 10])
-#
-# go = bisect.bisect_right(x, result[0])
-#
-# index_threshold_n = x[go - 1]
 
-# print('index threshold\t', index_threshold_n )
+round_app = []
+round_NN50 = []
 
-#go = bisect.bisect_left(x, result)
-
-# 0.15386027673006075
-
-# array('d', [20.674026070985576, 21.375799742626604, 24.835173349117987, 25.144864930160093, 31.251426864399274, 32.77824431486669, 33.31204072571591, 35.367657501791655, 36.25015602208525, 37.97279724942647, 44.437310033274606, 45.352586139261014, 47.18662398202637, 48.85492623558239, 53.22404377724342, 54.74594183729389, 57.02551364687237, 58.803944407332665, 59.34866467674018, 60.783847142563296, 61.24868358025391, 63.31407851420438, 66.41567957908599])
-# == plotting STD of approximate entropy
-
+# =============================================================================================================
+# == plotting the results
 
 fig, axs = plt.subplots(2, 1)
 axs[0].plot(tt, app, label="approximate entropy of healthy signal", marker='o')
 axs[1].plot(tt_healthy,STD_app, label="STD of approximate entropy", marker='o')
-# axs[1].plot(tt_healthy,arr, label="STD of approximate entropy", marker='o')
-# axs[0].set_title('Patient ' + ID, fontsize=24, y=1)
-# axs[1].set_title("Patient " + ID_healthy, fontsize=24, y=1)
 axs[0].axvline(x=tt[-1] - 600, color='red', linestyle='--')
 axs[1].axvline(x=len(STD_app) - 10, color='red', linestyle='--')
 
 axs[0].set_title('Subject ' + ID,fontsize=24, y=1)
 
-axs[1].axhline(y=0.07, color='blue', linestyle='--')
+axs[1].axhline(y=thresh_AP, color='blue', linestyle='--')
 
-axs[0].set_xlabel('sample en seconde')
-axs[0].set_ylabel('valeur de entropie')
-axs[1].set_xlabel('sample en seconde')
-axs[1].set_ylabel('valeur de entropie')
+axs[0].set_xlabel('sample per min')
+axs[0].set_ylabel('entropy value')
+axs[1].set_xlabel('sample per min')
+axs[1].set_ylabel('entropy value')
 axs[0].grid(True)
 axs[1].grid(True)
 axs[0].legend()
@@ -308,17 +313,17 @@ axs[0].set_title('Subject ' + ID,fontsize=24, y=1)
 axs[0].axvline(x= len(STD_app) - 10, color='red', linestyle='--')
 axs[1].axvline(x= len(STD_NN50) - 10, color='red', linestyle='--')
 
-axs[0].set_xlabel('sample en seconde')
-axs[0].set_ylabel('valeur de entropie')
-axs[1].set_xlabel('sample en seconde')
-axs[1].set_ylabel('valeur de entropie')
+axs[0].set_xlabel('sample per min')
+axs[0].set_ylabel('entropy value')
+axs[1].set_xlabel('sample per min')
+axs[1].set_ylabel('entropy value')
 axs[0].grid(True)
 axs[1].grid(True)
 axs[0].legend()
 axs[1].legend()
 
-axs[1].axhline(y=5, color='blue', linestyle='--')
-axs[0].axhline(y=0.07, color='blue', linestyle='--')
+axs[0].axhline(y=thresh_AP, color='blue', linestyle='--')
+axs[1].axhline(y=thresh_nn, color='blue', linestyle='--')
 
 ymin_1 = 0; ymax_1 = 0.25
 axs[0].set_ylim([ymin_1,ymax_1])
@@ -358,7 +363,7 @@ axs[1].grid(True)
 axs[0].legend()
 axs[1].legend()
 
-axs[1].axhline(y=5, color='blue', linestyle='--')
+axs[1].axhline(y=thresh_nn, color='blue', linestyle='--')
 
 ymin = 70 ; ymax = 275
 axs[0].set_ylim([ymin,ymax])
@@ -373,5 +378,3 @@ elif intersection_n.geom_type == 'Point':
 
 
 plt.show()
-
-print('')
